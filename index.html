@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script>
+      d3.select('body')
+        .selectAll('div')
+        .data([5,6,2,8,4,9,1,3,7,10])
+        .enter()
+        .append('div')
+        .text(d => `$${d.toFixed(2)}`)
+        .style('padding', '1em')
+        .style('background-color', (d) => `hsl(${(d / 10) * 360}, 100%, 50%)`)
+        .style('margin', '1px')
+        .style('width', (d) => `${d / 10 * 100}%`)
+        .style('border-radius', '3rem')
+        //.style('background-image', 'linear-gradient(to left, #e66465, #9198e5)')
+        .style('color', '#fff')
+        .style('font-family', 'Helvetica')
+        .style('font-size', (d) => `${d * 5}px`)
+        .style('opacity', (d) => d / 10)
+    </script>
+</body>
+</html>
