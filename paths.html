@@ -17,53 +17,79 @@
   </head>
   <body>
 
-  <svg id="svg" width="600" height="400"></svg>
+  <svg id="svg" width="700" height="500"></svg>
 
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script>
   function getDataForState(data, state) {
-    const arr = data
-        .filter(d => d.state === state)
-        .filter(d => !isNaN(d.precipitation))
-        .map(d => {
-            d.precipitation = parseFloat(d.precipitation)
-            return d
-        })
-    return arr
-    }
-    function handleData(data) {
-        const width = 600
-        const height = 400
-        const margin = 40
-        console.log(getDataForState(data, 'SE'))
-        const baData = getDataForState(data, 'BA')
-        const maData = getDataForState(data, 'MA')
-        const xscale = d3.scaleLinear()
-        .domain([0, baData.length])
-        .range([560, 40])
-        const percipitationExtents = d3.extent(baData, d => d.precipitation)
-        const yscale = d3.scaleLinear()
-        .domain(percipitationExtents)
-        .range([360, 40])
-        const linegen = d3.line()
-        .x((d, i) => xscale(i))
-        .y(d => yscale(d.precipitation))
-        .curve(d3.curveLinear)
-    d3.select('#svg')
-        .append('path')
-        .attr('d', linegen(baData))
-        .attr('stroke-width', 2)
-        .attr('stroke', 'teal')
-        .attr('fill', 'none')
-    d3.select('#svg')
-        .append('path')
-        .attr('d', linegen(maData))
-        .attr('stroke-width', 2)
-        .attr('stroke', 'cornflowerblue')
-        .attr('fill', 'none')
-    }
-    d3.csv('precipitation.csv')
-        .then(handleData)
+  const arr = data
+    .filter(d => d.state === state)
+    .filter(d => !isNaN(d.precipitation))
+    .map(d => {
+      d.precipitation = parseFloat(d.precipitation)
+      return d
+    })
+  return arr
+}
+
+function handleData(data) {
+  const width = 700
+  const height = 500
+  const margin = 50
+ 
+  const baData = getDataForState(data, 'BA')
+  const parseTime = d3.timeParse('%d/%m/%Y')
+
+  baData.forEach(d => d.date = parseTime(d.date))
+  console.log(baData)
+
+  const dateExtent = d3.extent(baData, d => d.date)
+  const xscale = d3
+    .scaleTime()
+    .domain(dateExtent)
+    .range([margin, width - margin])
+    .nice()
+
+  const percipitationExtents = d3.extent(baData, d => d.precipitation)
+
+  const yscale = d3.scaleLinear()
+    .domain(percipitationExtents)
+    .range([height - margin, margin])
+
+  const linegen = d3.line()
+    .x(d => xscale(d.date))
+    .y(d => yscale(d.precipitation))
+    .curve(d3.curveLinear)
+
+  const svg = d3
+    .select('#svg')
+
+  const graph = svg
+    .append('g')
+
+  graph
+    .append('path')
+    .attr('d', linegen(baData))
+    .attr('stroke-width', 1)
+    .attr('stroke', 'teal')
+    .attr('fill', 'none')
+ 
+  const bottomAxis = d3.axisBottom(xscale)
+  const leftAxis = d3.axisLeft(yscale)
+
+  svg
+    .append('g')
+    .attr('transform', `translate(0, ${height - margin})`)
+    .call(bottomAxis)
+
+  svg
+    .append('g')
+    .attr('transform', `translate(${margin}, 0)`)
+    .call(leftAxis)
+}
+
+d3.csv('precipitation.csv')
+  .then(handleData)
   </script>
   </body>
 </html>
