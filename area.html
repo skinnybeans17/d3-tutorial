@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <title>Areas</title>
+  <style>
+    body, html {
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  
+    #svg {
+      border: 1px solid;
+    }
+  </style>
+  </head>
+  <body>
+
+  <svg id="svg" width="700" height="400"></svg>
+
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script>
+    async function handleData() {
+    const width = 700
+    const height = 400
+    const margin = 50
+
+    const data = await d3.csv('Weather Data in India from 1901 to 2017.csv')
+    const year_1901 = data[0]
+    const months_1901 = convertToArray(year_1901)
+    console.log(months_1901)
+    const year_1902 = data[1]
+    const months_1902 = convertToArray(year_1902)
+    console.log(months_1902)
+
+    const xscale = d3.scaleLinear()
+    .domain([0, months_1901.length - 1])
+    .range([margin, width - margin])
+
+    const yscale = d3.scaleLinear()
+    .domain(d3.extent(months_1901, d => d.temp))
+    .range([height - margin, margin])
+
+    const svg = d3
+    .select('#svg')
+
+    const graph = svg
+    .append('g')
+
+    const linegen = d3.area()
+    .x((d, i) => xscale(i))
+    .y0(d => yscale(d.temp))
+    .y1(height - margin)
+    .curve(d3.curveBasis)
+
+    const monthsScale = d3.scaleTime()
+    .domain([new Date('1901-01-01'), new Date('1901-12-01')])
+    .range([margin, width - margin])
+    .nice()
+
+    const bottomAxis = d3.axisBottom(monthsScale)
+    const leftAxis = d3.axisLeft(yscale)
+    svg
+      .append('g')
+      .attr('transform', `translate(0, ${height - margin})`)
+      .call(bottomAxis)
+    svg
+      .append('g')
+      .attr('transform', `translate(${margin}, 0)`)
+      .call(leftAxis)
+
+    function convertToArray(obj) {
+      const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+      return months.map(month => {
+      const temp = parseFloat(obj[month])
+          return { month: month, temp }
+      })
+    }
+
+    graph
+    .append('path')
+    .attr('d', linegen(months_1901))
+    .attr('fill', 'red')
+    .attr('opacity', '50%')
+
+    graph
+    .append('path')
+    .attr('d', linegen(months_1902))
+    .attr('fill', 'blue')
+    .attr('opacity', '50%')
+    }
+
+    handleData()
+  </script>
+  </body>
+</html>
