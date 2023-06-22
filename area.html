@@ -13,14 +13,41 @@
     #svg {
       border: 1px solid;
     }
+
+    select {
+      font-size: 1rem;
+      margin: 1rem 0;
+      align-self: flex-end;
+    }
   </style>
   </head>
   <body>
 
   <svg id="svg" width="700" height="400"></svg>
 
+  <select>
+    <option value="0">1901</option>
+    <option value="1">1902</option>
+    <option value="2">1903</option>
+    <option value="3">1904</option>
+    <option value="4">1905</option>
+   </select>
+
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script>
+    function convertToArray(obj) {
+      const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+      return months.map(month => {
+      const temp = parseFloat(obj[month])
+          return { month: month, temp }
+      })
+    }
+
+    let data
+    let year
+    let graph
+    let linegen
+
     async function handleData() {
     const width = 700
     const height = 400
@@ -29,10 +56,22 @@
     const data = await d3.csv('Weather Data in India from 1901 to 2017.csv')
     const year_1901 = data[0]
     const months_1901 = convertToArray(year_1901)
-    console.log(months_1901)
     const year_1902 = data[1]
     const months_1902 = convertToArray(year_1902)
-    console.log(months_1902)
+    const year_1903 = data[2]
+    const months_1903 = convertToArray(year_1903)
+    const year_1904 = data[3]
+    const months_1904 = convertToArray(year_1904)
+    const year_1905 = data[4]
+    const months_1905 = convertToArray(year_1905)
+
+    const years = data.slice(0, 5)
+      let months = []
+      for (let i = 0; i < 5; i += 1) {
+        const year = data[i]
+        const newMonths = convertToArray(year)
+        months = months.concat(newMonths)
+      }
 
     const xscale = d3.scaleLinear()
     .domain([0, months_1901.length - 1])
@@ -70,26 +109,34 @@
       .attr('transform', `translate(${margin}, 0)`)
       .call(leftAxis)
 
-    function convertToArray(obj) {
-      const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
-      return months.map(month => {
-      const temp = parseFloat(obj[month])
-          return { month: month, temp }
-      })
-    }
+    const path = graph 
+      .append('path')
+      .attr('d', linegen(months_1901))
+      .attr('fill', 'rgba(0, 0, 255, 0.33)')
+
+    path
+      .transition()
+      .duration(1000)
+      .ease(d3.easeExpIn)
 
     graph
-    .append('path')
-    .attr('d', linegen(months_1901))
-    .attr('fill', 'red')
-    .attr('opacity', '50%')
-
-    graph
-    .append('path')
-    .attr('d', linegen(months_1902))
-    .attr('fill', 'blue')
-    .attr('opacity', '50%')
-    }
+      .append('path')
+      .attr('d', linegen(months_1901))
+      .attr('fill', 'rgba(255, 0, 0, 0.2)')
+    
+      document.querySelector('select')
+        .addEventListener('change', e => {
+        const index = parseInt(e.target.value)
+        const hue = 360 / 12 * index 
+        const fillColor = `hsla(${hue}, 100%, 50%, 0.33)`
+        console.log(data[index])
+        path
+          .transition()
+          .duration(1000)
+          .attr('d', linegen(convertToArray(data[index])))
+          .attr('fill', fillColor)
+    })
+  }
 
     handleData()
   </script>
