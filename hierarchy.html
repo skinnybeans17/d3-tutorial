@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <title>Hierarchy</title>
+  <style>
+    body, html {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      flex-direction: column;
+    }
+  
+    #svg {
+      border: 1px solid;
+    }
+  </style>
+  </head>
+  <body>
+
+  <svg id="svg" width="600" height="600"></svg>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script>
+      async function handleData() {
+        const data = await d3.csv('cities.csv')
+        const byCountry = {
+            label: 'world',
+            children: [],
+            population: data.reduce((acc, d) => parseInt(d.population) + acc, 0)
+        }
+        const countryNames = Array.from(new Set(data.map(d => d.country)))
+            countryNames.forEach(d => {
+        const cities = data.filter(c => c.country === d)
+        const pop = cities.reduce((acc, d) => parseInt(d.population) + acc, 0)
+            byCountry.children.push({ 
+                label: d, 
+                population: pop, 
+                children: cities 
+            })
+        })
+        const root = d3.hierarchy(byCountry)
+            .sum(d => d.population)
+        const pack = d3.pack()
+            .size([500, 500])
+            .padding(2)
+        const rootNode = pack(root)
+        const num_f = d3.format(".2s")
+        const colorScale = d3
+            .scaleOrdinal(d3.schemeCategory10)
+        const nodes = d3.select('#svg')
+            .selectAll('g')
+            .data(rootNode.descendants())
+            .join('g')
+            .attr('transform', d => `translate(${d.x}, ${d.y})`)
+        nodes
+            .append('circle')
+            .attr('r', d => d.r)
+            .attr('fill', d => {
+                if (d.data.country === undefined) {
+                    return colorScale(d.data.label)
+                }
+                return colorScale(d.data.country)
+            })
+            .attr('opacity', '0.5')
+        nodes
+            .append('text')
+            .text(d => `${num_f(d.data.population)}`)
+            .attr('font-family', 'Helvetica')
+            .style('text-anchor', 'middle')
+            .style('alignment-baseline', 'middle')
+            .style('fill', 'white')
+            .attr('transform', `translate(0, 8)`)
+        nodes
+            .append('text')
+            .text(d => `${d.data.label}`)
+            .attr('font-family', 'Helvetica')
+            .style('text-anchor', 'middle')
+            .style('alignment-baseline', 'middle')
+            .style('fill', d => {
+                if (d.data.country === undefined) {
+                    return 'black'
+                }
+                return 'white'
+            })
+            .attr('transform', d => {
+                if (d.data.country === undefined) {
+                    return `translate(0, -${d.r})`
+                }
+
+                return 'translate(0, -8)'
+            })
+      }
+      handleData()
+  </script>
+</body>
+</html>
