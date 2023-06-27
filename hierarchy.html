@@ -84,10 +84,10 @@
             })
             .attr('transform', d => {
                 if (d.data.country === undefined) {
-                    return `translate(0, -${d.r})`
+                    return `translate(0, -${d.r-15})`
                 }
 
-                return 'translate(0, -8)'
+                return 'translate(0, -80)'
             })
       }
       handleData()
